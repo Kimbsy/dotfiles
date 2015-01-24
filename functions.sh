@@ -28,7 +28,7 @@ extract () {
 # Play next episode of Game of Thrones from directory,
 # then move it to watched directory
 GoT () {
-  cd Videos/GoT;
+  cd Videos/GoT
   WATCHED=~/Videos/GoT/watched/
 
   NEXT=$(ls | head -1)
@@ -40,17 +40,13 @@ GoT () {
 
 # Define a word using collinsdictionary.com
 define() {
-  curl -s "http://www.collinsdictionary.com/dictionary/english/$*"
-  | sed -n '/class="def"/p'
-  | awk '{gsub(/.*<span class="def">|<\/span>.*/,"");print}'
-  | sed "s/<[^>]\+>//g"
+  curl -s "http://www.collinsdictionary.com/dictionary/english/$*" | sed -n '/class="def"/p' | awk '{gsub(/.*<span class="def">|<\/span>.*/,"");print}' | sed "s/<[^>]\+>//g"
 }
 
 # Get weather data for Bristol
 weather() {
     echo BRISTOL:
-    curl -s "http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=${@:-BS8+1JG}"
-    | perl -ne 's/&amp;deg;/°/g;/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'
+    curl -s "http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=${@:-BS8+1JG}" | perl -ne 's/&amp;deg;/°/g;/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'
 }
 
 # Epoch time conversion
