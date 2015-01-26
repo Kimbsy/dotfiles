@@ -68,3 +68,17 @@ epoch() {
     fi
   fi
 }
+
+# Mother Of All Greps
+# Recursively greps current directory and all subsequent directories 
+# for commented lines matching clearly broken shit.
+moag() {
+  grep -IiRhP \
+  "(\/\/|\*).*(todo|hack|quick|needs doing|sorry|lol|soz|shit|fuck|bastard|stupid|cunt|twat|terrible|horrible|awful|crappy|probably|bloody|broke|bollocks|hard[\s\-]code)" \
+  --exclude-dir={node_modules,bower_components,public*,lib*,vendor,old} \
+  --exclude={*.log,*.err,*.md,README*,jQuery*,*min.js} \
+  all/modules/custom \
+  | sed 's/^\s*/ - /' \
+  | less
+}
+
