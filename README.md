@@ -1,5 +1,5 @@
 # dotfiles
-my .dotfiles contains useful and/or fun things to add to ~/.bashrc to make the terminal better
+My dotfiles. Useful and/or fun things to add to ~/.bashrc to make the terminal better
 
 add these lines to ~/.bashrc
 
