@@ -1,0 +1,92 @@
+
+
+
+updating :
+  employee id doesnt exist
+
+
+new :
+  employee id already exists
+  
+
+both :
+  employee id not specified
+  no file?
+  file is not valid text/csv mimetype
+  no data in header
+  no data in file
+  wrong number of columns
+  workgroup doesnt exist
+  job role doesnt exist
+  email already in use?
+  Use reviews/learning/goals not correct format
+  advanced user not correct format
+  employee ids for reviewers/commenters etc. not specified or not existing
+  invalid dates
+  invalid timezone
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+drupal_set_message(t('Could not find UID from Employee ID.'), 'error', FALSE);
+drupal_set_message(t('Could not find import task.'), 'warning', FALSE);
+drupal_set_message(t('The import probably completed successfully, but has not been correctly logged.'), 'warning', FALSE);
+drupal_set_message(t('No employee ID specified.'), 'error', FALSE);
+drupal_set_message(rt('Cannot find [ig-core:job-roles] vocabulary.'), 'error', FALSE);
+drupal_set_message(rtu('[ig-core:job-roles] @job_role already exists, updating...', array('@job_role' => $this->jobRoleName)));
+drupal_set_message(t("Error! The $jf :family \"Unallocated\" does not exist.",
+drupal_set_message(t('Changed @old to @new.',
+drupal_set_message(t('Error loading FID :fid', array(':fid' => $fid)), 'error', FALSE);
+drupal_set_message(t('File is not a valid text/csv mimetype.'), 'error', FALSE);
+drupal_set_message(t('File not loaded; you shall not parse.'), 'error', FALSE);
+drupal_set_message(t('File not loaded or no data supplied.'), 'error', FALSE);
+drupal_set_message(t('Could not validate CSV header, probably not an import file!'), 'error', FALSE);
+drupal_set_message(t('No data to import.'), 'error', FALSE);
+drupal_set_message(t('Could not get data.'), 'error', FALSE);
+drupal_set_message('Loading from json...');
+drupal_set_message(t('Format :format not recognised.', array(':format' => $format)), 'error', FALSE);
+drupal_set_message(t('Import did not pass @format format validation. Aborting!', array('@format' => strtoupper($format))), 'error', FALSE);
+drupal_set_message(t('Tried to set unsupported import type :type', array(':type' => $type)), 'error', FALSE);
+drupal_set_message(t('No data from which to generate the header.'), 'error', FALSE);
+drupal_set_message(t('No template fields specified, cannot generate map.'), 'error', FALSE);
+drupal_set_message(t('No data to validate.'), 'error', FALSE);
+drupal_set_message(t('No import type set (employee, workgroup, etc).'), 'error', FALSE);
+drupal_set_message(t('The :type importer requires :creq columns. You supplied :csup. :extra',
+drupal_set_message(t('Checking for :field... SUCCESS', array(':field' => $field['name'])), 'status', FALSE);
+drupal_set_message($warning, 'warning');
+drupal_set_message($this->errors[0], 'error');
+drupal_set_message($error, 'error');
+drupal_set_message(t('Errors occurred. The import prematurely exited.'), 'error');
+drupal_set_message(t('No data available when trying to output from SimitiveImporterLoader.'), 'error', FALSE);
+drupal_set_message(t('There were issues with recording the status of the import task.'), 'warning', FALSE);
+drupal_set_message(t('Could not add field :column.', array(':column' => $column)), 'warning', TRUE);
+drupal_set_message(t('Not overriding :field because the data entered is blank.', array(':field' => $column)), 'warning', TRUE);
+drupal_set_message(t('Could not add role :role as it does not exist.', array(':role' => $role)), 'error', FALSE);
+drupal_set_message(t('User @user already exists, skipping...', array('@user' => $this->username)));
+drupal_set_message(t('User @user already exists, updating...', array('@user' => $this->username)));
+drupal_set_message(t('Creating user @user...', array('@user' => $this->username)));
+drupal_set_message(t('Error! Username could not be generated. Possibly no forename or surname were provided...'), 'error');
+drupal_set_message(t('Workgroup @workgroup already exists, skipping...', array('@workgroup' => $this->workgroupName)));
+drupal_set_message(t('Workgroup @workgroup already exists, updating...', array('@workgroup' => $this->workgroupName)));
+drupal_set_message(
+drupal_set_message(t('Workgroup :workgroup does not exist.', array(':workgroup' => $workgroup)), 'error', FALSE);
+drupal_set_message(rtu('[ig-core:job-role] :job_role does not exist.', array(':job_role' => $job_role)), 'error', FALSE);
+drupal_set_message(t('Invalid timezone entered. Please refer to ' . l('the php.net timezone guide', 'http://php.net/manual/en/timezones.php') . '.'), 'error', FALSE);   
+drupal_set_message(t('Error, no data supplied.'), 'error', FALSE);
+drupal_set_message(t('Could not find import task.'), 'warning', FALSE);
+drupal_set_message(t('The import probably completed successfully, but has not been correctly logged.'), 'warning', FALSE);
+drupal_set_message(t('The import completed successfully in @time.', array('@time' => SimitiveImporter::convertSeconds($time_taken))), 'status', FALSE);

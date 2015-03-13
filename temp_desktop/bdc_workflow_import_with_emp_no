@@ -1,0 +1,1031 @@
+<?php
+
+/**
+ * @file
+ * Main hooks and functionality for the Simitive importer.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function simitive_importer_menu() {
+  $items = array();
+
+  $items['settings/importer'] = array(
+    'title' => 'Importer',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access importer'),
+    'weight' => 120,
+    'file' => 'system.admin.inc',
+    'file path' => '/modules/system',
+    'menu_name' => 'ig-settings',
+  );
+
+  $items['settings/importer/templates'] = array(
+    'title' => 'Download Template Files',
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+  );
+
+  $items['settings/importer/templates/workflow'] = array(
+    'title' => 'Workflow import template',
+    'page callback' => 'simitive_importer_generate_template',
+    'page arguments' => array(3),
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['settings/importer/templates/employee'] = array(
+    'title' => 'Employee import template',
+    'page callback' => 'simitive_importer_generate_template',
+    'page arguments' => array(3),
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+  );
+
+  $items['settings/importer/templates/workgroup'] = array(
+    'title' => ucfirst(token_replace('[ig-core:workgroup] import template')),
+    'page callback' => 'simitive_importer_generate_template',
+    'page arguments' => array(3),
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+  );
+
+  $items['settings/importer/templates/job-role'] = array(
+    'title' => ucfirst(token_replace('[ig-core:job-role] import template')),
+    'page callback' => 'simitive_importer_generate_template',
+    'page arguments' => array(3),
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+  );
+
+  $items['settings/importer/import'] = array(
+    'title' => 'Import Data',
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+  );
+
+  $items['settings/importer/import/employee'] = array(
+    'title' => 'Import Employees',
+    'page callback' => 'simitive_importer_import_users_start',
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+  );
+
+  $items['settings/importer/import/workgroup'] = array(
+    'title' => ucwords(token_replace('Import [ig-core:workgroups]')),
+    'page callback' => 'simitive_importer_import_users_start',
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+  );
+
+  $items['settings/importer/import/job-role'] = array(
+    'title' => ucwords(token_replace('Import [ig-core:job-roles]')),
+    'page callback' => 'simitive_importer_import_users_start',
+    'access arguments' => array('access importer'),
+    'menu_name' => 'ig-settings',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function simitive_importer_permission() {
+  return array(
+    'access importer' => array(
+      'title' => t('Access importer'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function simitive_importer_entity_info() {
+  return array(
+    'import_task' => array(
+      'label' => t('Import task'),
+      'entity class' => 'ImportTask',
+      'controller class' => 'ImportTaskController',
+      'base table' => 'simitive_importer_import_task',
+      'entity keys' => array(
+        'id' => 'task_id',
+      ),
+      'load hook' => 'simitive_importer_import_task_load',
+      'label callback' => 'simitive_importer_import_task_label',
+      'module' => 'simitive_importer',
+    ),
+    'import_task_record' => array(
+      'label' => t('Import task record'),
+      'entity class' => 'ImportTaskRecord',
+      'controller class' => 'ImportTaskRecordController',
+      'base table' => 'simitive_importer_import_task_record',
+      'entity keys' => array(
+        'id' => 'task_record_id',
+      ),
+      'label callback' => 'simitive_importer_import_task_record_label',
+      'module' => 'simitive_importer',
+    ),
+  );
+}
+
+/**
+ * Implements hook_file_download().
+ */
+function simitive_importer_file_download($uri) {
+  // Check if file should be handled by this module.
+  if (strpos($uri, 'private://simitive_importer') === 0) {
+    // No import files should be downloadable.
+    return -1;
+  }
+
+  return NULL;
+}
+
+/**
+ * Generates a CSV template for a specific import type.
+ *
+ * @param string $type
+ *   The type of import template to generate.
+ */
+function simitive_importer_generate_template($type) {
+  $fields = simitive_importer_simitive_importer_template_fields($type);
+
+  if (!empty($fields)) {
+    // Parse the fields into their appropriate headings and examples.
+    $headings = '';
+    $examples = '';
+    foreach ($fields as $field) {
+      $headings[] = $field['name'];
+      $examples[] = $field['default'];
+    }
+    $rows = array(implode(',', $headings), implode(',', $examples));
+    // Generate the filename for the template.
+    $filename = check_plain($type) . '-import-template-' . date(DATE_FORMAT_ISO) . '.csv';
+    // Add the relevant headers to prepare the output.
+    drupal_add_http_header('Cache-Control', 'must-revalidate, post-check=0, pre-check=0');
+    drupal_add_http_header('Content-Type', 'text/csv');
+    drupal_add_http_header('Content-Disposition', 'attachment; filename="' . $filename);
+
+    // Print the output and close the connection.
+    print implode("\n", $rows);
+    drupal_exit();
+  }
+  else {
+    // No valid import type has been requested, so bail out.
+    watchdog('simitive_importer', 'Invalid import template type requested: %type', array('%type' => $type), WATCHDOG_ERROR);
+    drupal_not_found();
+  }
+}
+
+
+/**
+ * Provides a set of fields for a specific import template type.
+ *
+ * @param string $type
+ *   The type of import template to be generated.
+ *
+ * @return array
+ *   A set of fields and example values for the import template type requested.
+ */
+function simitive_importer_simitive_importer_template_fields($type) {
+  $type = str_replace('-', '_', $type);
+  switch ($type) {
+    case 'workflow':
+      $fields = array(
+        // using username (login id) instead of employee id
+        'employee_id' => array(
+          'name'     => 'Employee ID',
+          'default'  => '01234',
+          'required' => TRUE,
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            foreach (explode('|', $value) as $field_employee_no) {
+              $uid = ig_core_get_uid_from_employee_no(SimitiveImporter::sanitise($field_employee_no));
+              if ($uid == '0') {
+                $errors = TRUE;
+              }
+            }
+            if (isset($errors)) {
+              return !$errors;
+            }
+            return TRUE;
+          },
+        ),
+        'forename' => array(
+          'name' => 'Forename',
+          'default' => 'Example',
+        ),
+        'surname' => array(
+          'name' => 'Surname',
+          'default' => 'User',
+        ),
+        'username' => array(
+          'name'     => 'Login ID',
+          'default'  => 'ab0123',
+          'required' => TRUE,
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            foreach (explode('|', $value) as $login_id) {
+              $uid = ig_core_get_uid_from_username(SimitiveImporter::sanitise($login_id));
+              if ($uid == '0') {
+                $errors = TRUE;
+              }
+            }
+            if (isset($errors)) {
+              return !$errors;
+            }
+            return TRUE;
+          },
+        ),
+        'workgroup' => array(
+          'name' => 'Student Workgroup',
+          'default' => 'Workgroup1',
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            $existing_workgroups = SimitiveImporter::getWorkgroups();
+            $value = SimitiveImporter::sanitise($value);
+            foreach ($existing_workgroups as $tid => $workgroup) {
+              if (SimitiveImporter::sanitise($workgroup->name) == $value) {
+                return TRUE;
+              }
+              if (!empty($workgroup->field_wg_code) && SimitiveImporter::sanitise($workgroup->field_wg_code[LANGUAGE_NONE][0]['value']) == $value) {
+                return TRUE;
+              }
+            }
+            return FALSE;
+          },
+        ),
+        'approved' => array(
+          'name'    => 'Approved (Yes/No)',
+          'default' => '0 (No) or 1 (Yes)',
+          'custom_logic' => function($a) {
+            $b = array(
+              '0' => TRUE,
+              'no' => TRUE,
+              'false' => TRUE,
+            );
+            if (array_key_exists($a, $b)) {
+              $a = SimitiveImporter::BLANKOUT_CHAR;
+            }
+          },
+        ),
+        'workflow_id' => array(
+          'name'     => 'Workflow Employees',
+          'default'  => 'Workflow Employee ID|Workflow Employee ID 2|Workflow Employee ID 3',
+          // 'required' => TRUE,
+          'multiple' => TRUE,
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            foreach (explode('|', $value) as $field_employee_no) {
+              $uid = ig_core_get_uid_from_username(SimitiveImporter::sanitise($field_employee_no));
+              if ($uid == '0') {
+                $errors = TRUE;
+              }
+            }
+            if (isset($errors)) {
+              return !$errors;
+            }
+            return TRUE;
+          },
+        ),
+        'workflow_role' => array(
+          'name'     => 'Workflow Roles',
+          'default'  => 'Student|PGR Tutor|Supervisor',
+          // 'required' => TRUE,
+          'multiple' => TRUE,
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            $workflow_roles = _bdc_apr_roles();
+            foreach (explode('|', $value) as $role) {
+              if (!in_array($role, $workflow_roles)) {
+                $errors = TRUE;
+              }
+            }
+            if (isset($errors)) {
+              return !$errors;
+            }
+            return TRUE;
+          },
+        ),
+      );
+      break;
+    case 'workgroup':
+      $fields = array(
+        'workgroup_family' => array(
+          'name'    => rtu('[ig-core:workgroup] family'),
+          'default' => rt('Example [ig-core:workgroup] family'),
+        ),
+        'workgroup_parent' => array(
+          'name'    => rt('Parent [ig-core:workgroup]'),
+          'default' => rt('Example parent [ig-core:workgroup]'),
+        ),
+        'workgroup_name' => array(
+          'name'    => rtu('[ig-core:workgroup] name'),
+          'default' => rt('Example [ig-core:workgroup] name'),
+          'required' => TRUE,
+        ),
+        'workgroup_code' => array(
+          'name'    => rtu('[ig-core:workgroup] code'),
+          'default' => 'CODE-123',
+        ),
+      );
+      break;
+
+    case 'job_role':
+      $fields = array(
+        'job_family' => array(
+          'name'    => rtu('[ig-core:job-family]'),
+          'default' => rt('Example [ig-core:job-family]'),
+        ),
+        'job_role' => array(
+          'name'     => rtu('[ig-core:job-role]'),
+          'default'  => rt('Example [ig-core:job-role]'),
+          'required' => TRUE,
+        ),
+        'job_description' => array(
+          'name'    => rtu('[ig-core:job-role] description'),
+          'default' => rt('Example [ig-core:job-role] description'),
+        ),
+      );
+      break;
+
+    case 'employee':
+    default:
+      $fields = array(
+        'status' => array(
+          'name'    => 'Status',
+          'default' => '0',
+          'regex'   => '/^[01]$/',
+        ),
+        'first_name' => array(
+          'name'     => 'First name',
+          'default'  => 'Joe',
+          'required' => TRUE,
+          'field'    => 'field_forename',
+        ),
+        'surname' => array(
+          'name'     => 'Last name',
+          'default'  => 'Bloggs',
+          'required' => TRUE,
+          'field'    => 'field_surname',
+        ),
+        'employee_id' => array(
+          'name'     => 'Employee ID',
+          'default'  => variable_get('simitive_importer_example_employee_id', 'ExUser001'),
+          'required' => TRUE,
+          'field'    => 'field_employee_no',
+        ),
+        'primary_workgroup' => array(
+          'name'     => rtu('Primary [ig-core:workgroup]'),
+          'default'  => rtu('My [ig-core:workgroup]'),
+          'required' => TRUE,
+          'field'    => 'field_workgroup',
+          'regex'    => '/^[^\|]*$/i',
+          'type'     => 'tid',
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            $existing_workgroups = SimitiveImporter::getWorkgroups();
+            $value = SimitiveImporter::sanitise($value);
+            foreach ($existing_workgroups as $tid => $workgroup) {
+              if (SimitiveImporter::sanitise($workgroup->name) == $value) {
+                return TRUE;
+              }
+              if (!empty($workgroup->field_wg_code) && SimitiveImporter::sanitise($workgroup->field_wg_code[LANGUAGE_NONE][0]['value']) == $value) {
+                return TRUE;
+              }
+            }
+            return FALSE;
+          },
+        ),
+        'contributing_workgroups' => array(
+          'name'     => rtu('Contributing [ig-core:workgroup]'),
+          'default'  => rtu('My [ig-core:workgroup]|My [ig-core:workgroup] 2|My [ig-core:workgroup] 3'),
+          'required' => FALSE,
+          'multiple' => TRUE,
+          'type'     => 'tid',
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            $existing_workgroups = array();
+            $errors = FALSE;
+            foreach (SimitiveImporter::getWorkgroups() as $wg) {
+              $existing_workgroups[] = SimitiveImporter::sanitise($wg->name);
+            }
+            foreach (explode('|', $value) as $workgroup) {
+              if (!in_array(SimitiveImporter::sanitise($workgroup), $existing_workgroups)) {
+                $errors = TRUE;
+                drupal_set_message(t('Workgroup :workgroup does not exist.', array(':workgroup' => $workgroup)), 'error', FALSE);
+              }
+            }
+            return !$errors;
+          },
+        ),
+        'email' => array(
+          'name'     => 'Email address',
+          'default'  => 'example@example.com',
+          'regex'    => '/^.*@.*\..*$/i',
+          'required' => TRUE,
+        ),
+        'primary_job_role' => array(
+          'name'     => rtu('Primary [ig-core:job-role]'),
+          'default'  => rt('My [ig-core:job-role]'),
+          'field'    => 'field_job_primary',
+          'type'     => 'tid',
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            $existing_job_roles = SimitiveImporter::getJobRoles();
+            foreach ($existing_job_roles as $tid => $job_role) {
+              if (SimitiveImporter::sanitise($job_role->name) == SimitiveImporter::sanitise($value)) {
+                return TRUE;
+              }
+            }
+            drupal_set_message(rtu('[ig-core:job-role] :job_role does not exist.', array(':job_role' => $value)), 'error', FALSE);
+            return FALSE;
+          }
+        ),
+        'other_job_roles' => array(
+          'name'     => rtu('Other [ig-core:job-roles]'),
+          'default'  => rtu('[ig-core:job-role] 1|[ig-core:job-role] 2|[ig-core:job-role] 3'),
+          'multiple' => TRUE,
+          'field'    => 'field_job',
+          'type'     => 'tid',
+          'custom_validation' => function($value = NULL) {
+            if (!$value) {
+              return FALSE;
+            }
+            $existing_job_roles = array();
+            $errors = FALSE;
+            foreach (SimitiveImporter::getJobRoles() as $jr) {
+              $existing_job_roles[] = SimitiveImporter::sanitise($jr->name);
+            }
+            foreach (explode('|', $value) as $job_role) {
+              if (!in_array(SimitiveImporter::sanitise($job_role), $existing_job_roles)) {
+                $errors = TRUE;
+                drupal_set_message(rtu('[ig-core:job-role] :job_role does not exist.', array(':job_role' => $job_role)), 'error', FALSE);
+              }
+            }
+            return !$errors;
+          }
+        ),
+      );
+      break;
+  }
+
+  // Allow modules to alter the importer templates.
+  drupal_alter('simitive_importer_template_fields', $fields, $type);
+
+  return $fields;
+}
+
+/**
+ * Implements hook_simitive_importer_template_fields_alter().
+ */
+function simitive_importer_simitive_importer_template_fields_alter(&$fields, $type) {
+  // Regex matches against valid dd/mm/yyyy or dd-mm-yyyy.
+  $date_regex = '/^(0[1-9]|[12][0-9]|3[01])[-\/](0[1-9]|1[012])[-\/](19|20)\d{2}$/';
+  $date_regex_friendly = t('Dates entered must be in the format DD-MM-YYYY or DD/MM/YYYY.');
+  switch ($type) {
+    case 'employee':
+      $new_fields = array(
+        'start_date' => array(
+          'name'           => 'Start date',
+          'default'        => 'dd/mm/yyyy',
+          'regex'          => $date_regex,
+          'regex_friendly' => $date_regex_friendly,
+          'required'       => FALSE,
+          'field'          => 'field_job_start',
+          'type'           => 'value',
+          'custom_logic'   => function(&$a) {
+            // The str_replace is due to a weird bug with strtotime and UK
+            // dates with hyphen separators. Stupid.
+            $a = date('Y-m-d', strtotime(str_replace('/', '-', $a)));
+          },
+        ),
+        'leaving_date' => array(
+          'name'           => 'Leaving date',
+          'default'        => 'dd/mm/yyyy',
+          'regex'          => $date_regex,
+          'regex_friendly' => $date_regex_friendly,
+          'required'       => FALSE,
+        ),
+        'timezone' => array(
+          'name'    => 'Timezone',
+          'default' => variable_get('date_default_timezone', 'Europe/London'),
+          'custom_validation' => function($value) {
+            $timezones = array_flip(DateTimeZone::listIdentifiers());
+            if (!isset($timezones[$value])) {
+              drupal_set_message(t('Invalid timezone entered. Please refer to ' . l('the php.net timezone guide', 'http://php.net/manual/en/timezones.php') . '.'), 'error', FALSE);
+              return FALSE;
+            }
+            return TRUE;
+          },
+        ),
+        'advanced_user' => array(
+          'name'    => 'Advanced user',
+          'default' => 'data manager|administrator',
+          'multiple' => TRUE,
+        ),
+      );
+
+      // Attach the standard "extra" fields to the employee template.
+      // @todo Refactor into main employee fields when layouts can be saved.
+      $fields += $new_fields;
+
+      // Process custom fields.
+      $custom_definitions = variable_get('ig_core_custom_fields', array());
+      $custom_fields = array();
+
+      foreach ($custom_definitions as $custom_name => $custom_definition) {
+        $custom_fields[$custom_name] = array(
+          'name'    => check_plain($custom_definition['title']),
+          'default' => check_plain($custom_definition['title']) . ' Answer',
+          'field'   => $custom_name,
+        );
+      }
+
+      // Add the custom fields to the employee template.
+      $fields += $custom_fields;
+      break;
+
+    default:
+      break;
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function simitive_importer_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'simitive_importer_template_fields_alter') {
+    // Move specific implementations into a specific order (for legacy reasons).
+    // @todo Allow for specific ordering of columns to be saved.
+    $ordered_items = array('ig_review', 'ig_learning', 'simitive_importer', 'simitive_wlm');
+    $matched_items = array();
+
+    // Split out items in the correct order and unset the originals.
+    foreach ($ordered_items as $ordered_item) {
+      if (array_key_exists($ordered_item, $implementations)) {
+        $matched_items[$ordered_item] = FALSE;
+        unset($implementations[$ordered_item]);
+      }
+    }
+
+    // Reassign the re-ordered fields to the beginning of the array.
+    $matched_items += $implementations;
+    $implementations = $matched_items;
+  }
+}
+
+/**
+ * Form callback for import selection process.
+ *
+ * @param array $form
+ *   The import selection form.
+ * @param array $form_state
+ *   The current form state.
+ * @param string $type
+ *   The type of import to run.
+ */
+function simitive_importer_import_selection_form($form, &$form_state, $type = NULL) {
+  // Hide the file upload button.
+  drupal_add_css('#edit-file-upload-upload-button { display: none; }', 'inline');
+  // The maximum upload size in MB.
+  $max_filesize = 2;
+  $default_type = str_replace('-', '_', arg(3));
+
+  $form['file_upload'] = array(
+    '#type' => 'managed_file',
+    '#title' => t('Upload an import file'),
+    '#upload_location' => 'private://simitive_importer/',
+    '#upload_validators' => array(
+      'file_validate_extensions' => array('csv'),
+      'file_validate_size' => array($max_filesize * 1024 * 1024),
+    ),
+  );
+  $form['type'] = array(
+    '#type' => 'select',
+    '#title' => 'Import Type',
+    '#options' => array(
+      'employee' => 'Employees',
+      'workgroup' => rtu('[ig-core:workgroups]'),
+      'job_role' => rtu('[ig-core:job-role]'),
+    ),
+    '#default_value' => $default_type,
+  );
+  $form['quick_fix'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Quick fix mode (beta)',
+    '#description' => t(
+      'Quick fix mode bypasses a lot of the validation on the structure and integrity of the form. It\'s used for modifying a small number of fields
+      on any number of users. You <strong>must</strong> supply either a username or employee ID for this to work. It will only update any users
+      it finds and will <strong>not</strong> add any new ones.'
+    ),
+    '#default_value' => 0,
+    '#states' => array(
+      'invisible' => array(
+        'select#edit-type' => array('!value' => 'employee'),
+      ),
+    ),
+  );
+  $form['skip_duplicates'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Skip duplicates',
+    '#description' => t(
+      'If you select this box, the importer will skip any duplicate records, even if non-identifying data has changed.'
+    ),
+    '#default_value' => 0,
+  );
+  $form['ignore_user_references'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Ignore User References',
+    '#description' => t(
+      'Will skip trying to set user references. Good if you\'re having problems with the user being referenced not existing.'
+    ),
+    '#default_value' => 0,
+    '#states' => array(
+      'invisible' => array(
+        'select#edit-type' => array('!value' => 'employee'),
+      ),
+    ),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Next',
+  );
+  return $form;
+}
+
+function simitive_importer_import_selection_form_submit($form, &$form_state, $type = NULL) {
+  if ($form_state['values']['type']) {
+    $type = $form_state['values']['type'];
+  }
+  elseif (!$type) {
+    $type = 'employee';
+  }
+
+  // Create initial import task.
+  $task = simitive_importer_create_import_task($type);
+
+  $importer = new SimitiveImporter($task->task_id);
+
+  // $importer::clearSession();
+
+  $importer_loader = new SimitiveImporterLoader();
+  $importer_loader->setType($type);
+  $importer_loader->loadFromCSV($form_state['values']['file_upload']);
+
+  $task->file_id = $form_state['values']['file_upload'];
+  simitive_importer_import_task_save($task);
+
+  $importer->setVar('skipDuplicates', $form_state['values']['skip_duplicates']);
+  $importer->setVar('ignoreUserReferences', $form_state['values']['ignore_user_references']);
+
+  if (!$form_state['values']['quick_fix']) {
+    $validated = $importer_loader->validate();
+  }
+  else {
+    $importer->setVar('quickFixMode', TRUE);
+    // Skip validation.
+    $validated = TRUE;
+  }
+  if ($validated) {
+    $importer_loader->generateMap();
+    $data = $importer_loader->getOutput();
+    if (isset($data) && !empty($data)) {
+      $task->initiated = time();
+      simitive_importer_import_task_save($task);
+      $call = call_user_func("simitive_importer_import_{$type}_batches", $data);
+      batch_set($call);
+      batch_process('settings/importer/import/' . str_replace('_', '-', $type));
+    }
+  }
+  return '';
+}
+
+/**
+ * Creates a new import task of a specific type.
+ *
+ * @param string $type
+ *   The type of import task to create.
+ *
+ * @return int|bool
+ *   The new import task, or FALSE if unable to create the task.
+ */
+function simitive_importer_create_import_task($type) {
+  // @todo: Make 'types' available as a single function array return.
+  $types = array(
+    'employee',
+    'workgroup',
+    'job_role',
+    'workflow',
+  );
+  if (!in_array($type, $types)) {
+    watchdog('simitive_importer', 'Unable to import records of this type: %type', array('%type' => $type), WATCHDOG_ERROR);
+    return FALSE;
+  }
+  $values = array('type' => $type);
+  $import_task = simitive_importer_import_task_create($values);
+  simitive_importer_import_task_save($import_task);
+  return $import_task;
+}
+
+function simitive_importer_process_record($data, $type, $task_id, $record_no, $source_id = '', $destination_id = '') {
+
+}
+
+/**
+ * Retrieves a specific import task using its ID.
+ *
+ * @param int $task_id
+ *   The ID of the import task.
+ * @param bool $reset
+ *   (Optional) Whether to reset the controller's internal cache.
+ *
+ * @return ImportTask
+ *   The requested import task.
+ */
+function simitive_importer_import_task_load($task_id, $reset = FALSE) {
+  $import_tasks = entity_load('import_task', array($task_id), array(), $reset);
+  return reset($import_tasks);
+}
+
+/**
+ * Retrieves one or more import tasks.
+ *
+ * @param array $task_ids
+ *   A set of import task IDs.
+ * @param array $conditions
+ *   (Optional) Conditions to restrict the returned import tasks.
+ * @param bool $reset
+ *   (Optional) Whether to reset the controller's internal cache.
+ *
+ * @return array
+ *   A set of matching import tasks.
+ */
+function simitive_importer_import_task_load_multiple($task_ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('import_task', $task_ids, $conditions, $reset);
+}
+
+/**
+ * Produces a new import task.
+ *
+ * @param array $values
+ *   Attributes to apply to the new import task.
+ *
+ * @return ImportTask
+ *   A newly-created import task.
+ */
+function simitive_importer_import_task_create(array $values) {
+  return entity_get_controller('import_task')->create($values);
+}
+
+/**
+ * Saves an import task to the database.
+ *
+ * @param ImportTask $import_task
+ *   The import task to save.
+ *
+ * @return mixed
+ */
+function simitive_importer_import_task_save($import_task) {
+  if ($import_task instanceof ImportTask) {
+    return $import_task->save();
+  }
+  if (is_numeric($import_task)) {
+    return entity_save('import_task', $import_task);
+  }
+}
+
+function simitive_importer_import_task_record_create(array $values) {
+  return entity_get_controller('import_task_record')->create($values);
+}
+
+function simitive_importer_import_task_record_save(ImportTaskRecord $import_task_record) {
+  return $import_task_record->save();
+}
+
+function simitive_importer_import_task_record_load($task_record_id, $reset = FALSE) {
+  $import_task_records = entity_load('import_task_record', array($task_record_id), array(), $reset);
+  return reset($import_task_records);
+}
+
+function simitive_importer_import_task_record_load_multiple($task_record_ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('import_task_record', $task_record_ids, $conditions, $reset);
+}
+
+// [MF] Here goes...
+
+function simitive_importer_import_users_start() {
+  $form = drupal_get_form('simitive_importer_import_selection_form');
+  return drupal_render($form);
+}
+
+/**
+ * Create our workflow batches
+ * @param  array $data  The data from the CSV
+ * @return array        Array of operations for batch_process
+ */
+function simitive_importer_import_workflow_batches($data) {
+  if (!$data) {
+    drupal_set_message(t('Error, no data supplied.'), 'error', FALSE);
+  }
+
+  $operations = array();
+  foreach ($data as $row) {
+    $operations[] = array('simitive_importer_workflow_import', array($row, count($data)));
+  }
+
+  return array(
+    'title'        => t('Importing workflow...'),
+    'init_message' => t('Starting import...'),
+    'operations'   => $operations,
+    'finished'     => 'simitive_importer_import_finished',
+  );
+}
+
+function simitive_importer_import_employee_batches($data) {
+  if (!$data) {
+    drupal_set_message(t('Error, no data supplied.'), 'error', FALSE);
+  }
+
+  $operations = array();
+  foreach ($data as $row) {
+    $operations[] = array('simitive_importer_user_import', array($row, count($data)));
+  }
+
+  return array(
+    'title'        => t('Importing users...'),
+    'init_message' => t('Starting import...'),
+    'operations'   => $operations,
+    'finished'     => 'simitive_importer_import_finished',
+  );
+}
+
+function simitive_importer_import_workgroup_batches($data) {
+  if (!$data) {
+    drupal_set_message(t('Error, no data supplied.'), 'error', FALSE);
+  }
+
+  $operations = array();
+  foreach ($data as $row) {
+    $operations[] = array('simitive_importer_workgroup_import', array($row, count($data)));
+  }
+
+  return array(
+    'title'        => rt('Importing [ig-core:workgroups]...'),
+    'init_message' => t('Starting import...'),
+    'operations'   => $operations,
+    'finished'     => 'simitive_importer_import_finished',
+  );
+}
+
+function simitive_importer_import_job_role_batches($data) {
+  if (!$data) {
+    drupal_set_message(t('Error, no data supplied.'), 'error', FALSE);
+  }
+
+  $operations = array();
+  foreach ($data as $row) {
+    $operations[] = array('simitive_importer_job_role_import', array($row, count($data)));
+  }
+
+  return array(
+    'title'        => rt('Importing [ig-core:job-roles]...'),
+    'init_message' => t('Starting import...'),
+    'operations'   => $operations,
+    'finished'     => 'simitive_importer_import_finished',
+  );
+}
+
+/**
+ * BDC Specific functionality, import their workflows
+ * @param  array  $data       Data from CSV
+ * @param  int    $row_count  The row count
+ * @param  array  $context    Context of the operation
+ */
+function simitive_importer_workflow_import($data = NULL, $row_count = 0, &$context) {
+  if (!$data) {
+    return FALSE;
+  }
+
+  $importer_workflow = new SimitiveImporterBDCWorkflow($data, $row_count, $context);
+  $importer_workflow->save();
+}
+
+function simitive_importer_user_import($data = NULL, $row_count = 0, &$context) {
+  if (!$data) {
+    return FALSE;
+  }
+
+  $importer_user = new SimitiveImporterUser($data, $row_count, $context);
+  // $importer_user->setUpdate(TRUE);
+  if (SimitiveImporter::getVar('quickFixMode')) {
+    $importer_user->update();
+  }
+  else {
+    $importer_user->create();
+  }
+  $importer_user->save();
+}
+
+function simitive_importer_workgroup_import($data = NULL, $row_count = 0, &$context) {
+  if (!$data) {
+    return FALSE;
+  }
+  $importer_user = new SimitiveImporterWorkgroup($data, $row_count, $context);
+  // $importer_user->setUpdate(TRUE);
+  if (SimitiveImporter::getVar('quickFixMode')) {
+    $importer_user->update();
+  }
+  else {
+    $importer_user->create();
+  }
+  $importer_user->save();
+
+}
+
+function simitive_importer_job_role_import($data = NULL, $row_count = 0, &$context) {
+  if (!$data) {
+    return FALSE;
+  }
+  $importer_user = new SimitiveImporterJobRoles($data, $row_count, $context);
+  // $importer_user->setUpdate(TRUE);
+  $importer_user->create();
+  $importer_user->save();
+
+}
+
+function simitive_importer_import_finished() {
+  $importer = new SimitiveImporter();
+  // $importer->setUserReferences();
+  $task = simitive_importer_import_task_load($importer->getTaskID());
+  if (!$task) {
+    drupal_set_message(t('Could not find import task.'), 'warning', FALSE);
+    drupal_set_message(t('The import probably completed successfully, but has not been correctly logged.'), 'warning', FALSE);
+    return;
+  }
+  $task->processed = time();
+  entity_save('import_task', $task);
+  $time_taken = $task->processed - $task->initiated;
+  drupal_set_message(t('The import completed successfully in @time.', array('@time' => SimitiveImporter::convertSeconds($time_taken))), 'status', FALSE);
+  // Assuming we're done, delete the session.
+  SimitiveImporter::clearSession();
+}
+
+/*
+// Just for teh lulz.
+
+function simitive_importer_preprocess_page(&$vars) {
+  if (arg(0) == 'batch') {
+    $markup = &$vars['page']['content']['system_main']['main']['#markup'];
+    $gifs_array = array(
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/aD01pd7_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/a9dRbpL_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/a6wNrNq_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/av0o2OX_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/azb9Pdm_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/aD0gmzB_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/aoz5j7x_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/ab5rpjO_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/anY5bL0_460sa.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/aeN5QMQ_460sa.gif',
+      'http://upload.wikimedia.org/wikipedia/en/3/3d/WaitCursor-300p.gif',
+      'http://d24w6bsrhbeh9d.cloudfront.net/photo/aLK0Y8W_460sa.gif',
+      'http://assets0.ordienetworks.com/misc/Dancing%20Gizmo.gif',
+      'http://assets0.ordienetworks.com/misc/Spinning%20Baby.gif',
+      'http://assets0.ordienetworks.com/misc/Super%20Fast%20Hampster%20Wheel.gif',
+      'http://assets0.ordienetworks.com/misc/Hula%20Hooping%20a%20Tire.gif',
+      'http://assets0.ordienetworks.com/misc/Kitty%20Ping%20Pong.gif',
+    );
+    $youtube_array = array(
+      'AR8D2yqgQ1U',
+      'izGwDsrQ1eQ',
+      'fUis9yny_lI',
+      'FTQbiNvZqaY',
+    );
+    $markup = '<div style="text-align:center"><img src="' . $gifs_array[rand(0, count($gifs_array) - 1)] . '"/></div><br/>' . $markup;
+    // $markup = '<div style="text-align:center"><iframe width="420" height="315" src="//www.youtube.com/embed/AR8D2yqgQ1U?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe></div></br>' . $markup;
+    // $markup = '<div style="text-align:center">And now for some light entertainment...<br/><iframe width="420" height="315" src="//www.youtube.com/embed/' . $youtube_array[rand(0, count($youtube_array) - 1)] . '?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe></div></br>' . $markup;
+  }
+}
+*/
