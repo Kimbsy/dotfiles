@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Exec=easystroke
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_GB]=easystroke
+Name=easystroke
+Comment[en_GB]=make mouse buttons behave
+Comment=make mouse buttons behave

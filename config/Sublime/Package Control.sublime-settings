@@ -1,0 +1,21 @@
+{
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"Better CoffeeScript",
+		"BracketHighlighter",
+		"C++11",
+		"Colorsublime",
+		"DocBlockr",
+		"Emmet",
+		"Handlebars",
+		"HTML Snippets",
+		"Package Control",
+		"Puppet",
+		"Sass",
+		"SideBarEnhancements",
+		"SublimeCodeIntel"
+	]
+}
