@@ -1,1 +1,0 @@
-gource -s .4 -p 0.85 -1280x720 --auto-skip-seconds .4 --multi-sampling --stop-at-end --highlight-users --hide mouse,filenames,progress --file-idle-time 0 --background-colour 111111 --font-size 20 --title "Simitive System Development" --output-ppm-stream - --output-framerate 60 | avconv -y -r 60 -f image2pipe -vcodec ppm -i - -b 8192K simitive_dev.mp4
