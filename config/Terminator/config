@@ -3,13 +3,19 @@
   suppress_multiple_term_dialog = True
 [keybindings]
 [profiles]
+  [[default]]
+    scrollback_lines = 5000
+    font = Monospace 9
+    use_system_font = False
+    background_image = None
   [[dev box]]
     foreground_color = "#44ff44"
     scrollback_lines = 5000
     font = Monospace 9
     use_system_font = False
     background_image = None
-  [[default]]
+  [[local]]
+    foreground_color = "#5af9ff"
     scrollback_lines = 5000
     font = Monospace 9
     use_system_font = False
@@ -17,39 +23,55 @@
   [[vm]]
     use_system_font = False
     font = Monospace 9
+    background_image = None
     foreground_color = "#fa84de"
   [[live site]]
+    foreground_color = "#f9805a"
     use_system_font = False
     font = Monospace 9
     allow_bold = False
-    foreground_color = "#f9805a"
-  [[local]]
-    foreground_color = "#5af9ff"
-    scrollback_lines = 5000
-    font = Monospace 9
-    use_system_font = False
     background_image = None
 [layouts]
   [[default]]
     [[[child0]]]
-      position = 55:24
+      position = 65:24
       type = Window
       order = 0
       parent = ""
-      size = 1225, 1000
+      size = 1855, 1056
     [[[child1]]]
-      position = 500
+      position = 528
       type = VPaned
       order = 0
       parent = child0
-    [[[terminal3]]]
-      profile = dev box
-      type = Terminal
+    [[[child2]]]
+      position = 1404
+      type = HPaned
+      order = 0
+      parent = child1
+    [[[child5]]]
+      position = 1404
+      type = HPaned
       order = 1
       parent = child1
-    [[[terminal2]]]
+    [[[terminal3]]]
       profile = local
       type = Terminal
       order = 0
-      parent = child1
+      parent = child2
+    [[[terminal4]]]
+      profile = live site
+      type = Terminal
+      order = 1
+      parent = child2
+    [[[terminal7]]]
+      profile = vm
+      type = Terminal
+      order = 1
+      parent = child5
+    [[[terminal6]]]
+      profile = dev box
+      type = Terminal
+      order = 0
+      parent = child5
 [plugins]
