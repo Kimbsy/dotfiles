@@ -1,6 +1,6 @@
 <snippet>
   <content><![CDATA[
-dpm(${1:${2:'${3:wooooooooo}'} . PHP_EOL});
+dpm(${1:'${2:wooooooooo}'});
 ]]></content>
   <!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
   <tabTrigger>dpm</tabTrigger>

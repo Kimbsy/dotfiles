@@ -1,6 +1,6 @@
 <snippet>
   <content><![CDATA[
-print_r(${1:'${2:wooooooooo}'});
+print_r(${1:${2:'${3:wooooooooo}'} . PHP_EOL});
 ]]></content>
   <!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
   <tabTrigger>print_r</tabTrigger>
