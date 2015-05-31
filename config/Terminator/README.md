@@ -1,1 +1,2 @@
-```~/.config/terminator.config```
+```~/.config/terminator.config
+```

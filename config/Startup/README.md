@@ -1,1 +1,2 @@
-```~/.config/autostart/*```
+```~/.config/autostart/*
+```
