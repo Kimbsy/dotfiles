@@ -1,0 +1,10 @@
+<snippet>
+  <content><![CDATA[
+${1:\$first = TRUE;}
+if (\$first) {${2:dpm}(${3:${4:'${5:wooooooooo}'} . PHP_EOL}); \$first = FALSE;}
+]]></content>
+  <!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+  <tabTrigger>first</tabTrigger>
+  <!-- Optional: Set a scope to limit where the snippet will trigger -->
+  <scope>source.php</scope>
+</snippet>
