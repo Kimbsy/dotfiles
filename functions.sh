@@ -1,3 +1,4 @@
+
 #########################################################################
 ############################### FUNCTIONS ###############################
 #########################################################################
@@ -25,17 +26,17 @@ extract () {
    fi
 }
 
-# Play next episode of Game of Thrones from directory,
+# Play next episode of Arrested development from directory,
 # then move it to watched directory
-GoT () {
-  cd Videos/GoT
-  WATCHED=~/Videos/GoT/watched/
+arrested () {
+  ROUTE=~/Videos/arrestedDevelopment
+  WATCHED=~/Videos/arrestedDevelopment/watched/
 
-  NEXT=$(ls | head -1)
+  NEXT=$(ls $ROUTE | head -1)
   echo "Watching $NEXT"
 
-  mv $NEXT $WATCHED
-  vlc -f "$WATCHED/$NEXT"
+  mv "$ROUTE/$NEXT" $WATCHED
+  vlc --full-screen "$WATCHED/$NEXT"
 }
 
 # Define a word using collinsdictionary.com
