@@ -36,7 +36,7 @@ arrested () {
   echo "Watching $NEXT"
 
   mv "$ROUTE/$NEXT" $WATCHED
-  vlc --full-screen "$WATCHED/$NEXT"
+  vlc -f "$WATCHED$NEXT"
 }
 
 # Define a word using collinsdictionary.com
