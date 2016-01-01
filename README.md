@@ -1,8 +1,7 @@
 # dotfiles
-My dotfiles. Useful and/or fun things to add to ~/.bashrc to make the terminal better
+My dotfiles. Useful aliases and functions to add to Bash to make the terminal better
 
-add these lines to ~/.bashrc
-
-test -r ~/Programs/dotfiles/functions.sh && . ~/Programs/dotfiles/functions.sh
-
-test -r ~/Programs/dotfiles/aliases.sh && . ~/Programs/dotfiles/aliases.sh
+Install script should work in Ubuntu and Mint.
+```Bash
+sudo ./install
+```
