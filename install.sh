@@ -14,8 +14,15 @@ if [ -f "/etc/bash.bashrc" ]; then
 fi
 
 # Strings to put in bash file
+RESOURCE="alias resource='source $BASH'"
 FUNCTIONS=". $REPO/functions.sh"
 ALIASES=". $REPO/aliases.sh"
+
+if ! grep -q "$RESOURCE" $BASH; then
+    echo "" >> $BASH
+    echo "# Reload source of bash" >> $BASH
+    echo "$RESOURCE" >> $BASH
+fi
 
 if ! grep -q "$FUNCTIONS" $BASH; then
     echo "" >> $BASH
