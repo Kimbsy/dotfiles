@@ -45,8 +45,11 @@ define() {
 
 # Get weather data for Bristol
 weather() {
+    key=58b5b5a99ae513c8
     echo BRISTOL:
-    curl -s "http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=${@:-BS8+1JG}" | perl -ne 's/&amp;deg;/°/g;/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'
+    echo ''
+    data=$(curl -s "http://api.wunderground.com/api/$key/forecast/q/UK/Bristol.json" | jq -r ['.forecast.txt_forecast.forecastday[] | [.title], [.fcttext], ["break"] | .[]'])
+    echo $data | sed -e 's/[,]/\n/g' -e 's/[]"]/''/g' -e 's/[[]/''/g' -e 's/break/\n/g'
 }
 
 # Epoch time conversion
