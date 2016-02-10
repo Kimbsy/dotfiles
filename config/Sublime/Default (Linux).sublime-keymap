@@ -5,7 +5,7 @@
   { "keys": ["ctrl+o"], "command": "prompt_open_file", "args": {"initial_directory": "/home/dave/Projects/vagrant/trusty/www/Projects"} },
 
   // Binding for 'open directory'.
-  { "keys": ["ctrl+shift+o"], "command": "prompt_open_folder" },
+  { "keys": ["ctrl+shift+o"], "command": "prompt_open_folder", "args": {"initial_directory": "/home/dave/Projects/vagrant/trusty/www/Projects"}
 
   // Binding for 'go to definition'.
   { "keys": ["alt+d"], "command": "goto_definition"},
