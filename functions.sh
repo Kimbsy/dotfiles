@@ -72,7 +72,6 @@ epoch() {
   fi
 }
 
-# Mother Of All Greps
 # Recursively greps current directory and all subsequent directories 
 # for commented lines matching clearly broken shit.
 moag() {
@@ -84,4 +83,15 @@ moag() {
   | sed 's/^\s*/ - /' \
   | less
 }
+
+# play a beep through the speakers
+# e.g.
+#    alarm 800 200
+alarm() {
+  ( \speaker-test --frequency $1 --test sine )&
+  pid=$!
+  \sleep 0.${2}s
+  \kill -9 $pid
+}
+alias beep='alarm 800 200 > /dev/null'
 
