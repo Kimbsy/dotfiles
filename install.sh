@@ -1,17 +1,15 @@
 #!/bin/bash
 
+# Get location of bash config file from args
+if [ -z $1 ]; then
+    echo "ERROR -- Config file destination not specified."
+    echo "usage:"
+    echo "       ./install.sh /path/to/bashrc"
+fi
+BASH=$1
+
 # Get path of repo
 REPO=$(pwd)
-
-# Ubuntu requires changes in ~/.bashrc
-if [ -f "~/.bashrc" ]; then
-    BASH="~/.bashrc"
-fi
-
-# Mint requires chances in /etc/bash.bashrc
-if [ -f "/etc/bash.bashrc" ]; then
-    BASH="/etc/bash.bashrc"
-fi
 
 # Strings to put in bash file
 RESOURCE="alias resource='source $BASH'"
@@ -36,5 +34,5 @@ if ! grep -q "$ALIASES" $BASH; then
     echo "$ALIASES" >> $BASH
 fi
 
-# Reload bashrc
-. $BASH
+# Remind to reload bash config.
+echo "Config updated, please run 'source $1'"
