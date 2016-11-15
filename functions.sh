@@ -25,19 +25,6 @@ extract () {
    fi
 }
 
-# Play next episode of Arrested development from directory,
-# then move it to watched directory
-arrested () {
-  ROUTE=~/Videos/arrestedDevelopment
-  WATCHED=~/Videos/arrestedDevelopment/watched/
-
-  NEXT=$(ls $ROUTE | head -1)
-  echo "Watching $NEXT"
-
-  mv "$ROUTE/$NEXT" $WATCHED
-  vlc -f "$WATCHED$NEXT"
-}
-
 # Define a word using collinsdictionary.com
 define() {
   curl -s "http://www.collinsdictionary.com/dictionary/english/$*" | sed -n '/class="def"/p' | awk '{gsub(/.*<span class="def">|<\/span>.*/,"");print}' | sed "s/<[^>]\+>//g"
@@ -72,19 +59,7 @@ epoch() {
   fi
 }
 
-# Recursively greps current directory and all subsequent directories 
-# for commented lines matching clearly broken shit.
-moag() {
-  grep -IiRhP \
-  "(\/\/|\*).*(todo|hack|quick|needs doing|sorry|lol|soz|shit|fuck|bastard|stupid|cunt|twat|terrible|horrible|awful|crappy|probably|bloody|broke|bollocks|hard[\s\-]code)" \
-  --exclude-dir={node_modules,bower_components,public*,lib*,vendor,old} \
-  --exclude={*.log,*.err,*.md,README*,jQuery*,*min.js} \
-  all/modules/custom \
-  | sed 's/^\s*/ - /' \
-  | less
-}
-
-# play a beep through the speakers
+# Play a beep through the speakers
 # e.g.
 #    alarm 800 200
 alarm() {
@@ -94,4 +69,13 @@ alarm() {
   \kill -9 $pid
 }
 alias beep='alarm 800 200 > /dev/null'
+
+# Wrap vim in a function that checks write permissions on files
+vim() {
+  if [[ ! -e $* || -w $* ]]; then
+    /usr/bin/vim $*
+  else
+    sudo /usr/bin/vim $*
+  fi
+}
 
