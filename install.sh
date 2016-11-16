@@ -4,7 +4,7 @@
 if [ -z $1 ]; then
     echo "ERROR -- Config file destination not specified."
     echo "usage:"
-    echo "       ./install.sh /path/to/bashrc"
+    echo "       ./install.sh <path_to_bashrc>"
 fi
 BASH=$1
 

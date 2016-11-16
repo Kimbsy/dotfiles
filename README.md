@@ -3,5 +3,5 @@ My dotfiles. Useful aliases and functions to add to Bash to make the terminal be
 
 Install script should work in Ubuntu and Mint.
 ```Bash
-sudo ./install
+./install.sh <path_to_bashrc>
 ```
