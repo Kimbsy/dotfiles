@@ -72,10 +72,10 @@ alias beep='alarm 800 200 > /dev/null'
 
 # Wrap vim in a function that checks write permissions on files
 vim() {
-  if [[ ! -e $* || -w $* ]]; then
-    /usr/bin/vim $*
+  if [[ ! -e "$*" || -w "$*" ]]; then
+    /usr/bin/vim "$*"
   else
-    sudo /usr/bin/vim $*
+    sudo /usr/bin/vim "$*"
   fi
 }
 
