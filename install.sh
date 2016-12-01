@@ -22,6 +22,7 @@ repo=$(pwd)
 resource="alias resource='source $bashrc'"
 functions=". $repo/functions.sh"
 aliases=". $repo/aliases.sh"
+autocomplete=". /etc/bash_completion.d/custom_bash_completion"
 
 if ! grep -q "$resource" "$bashrc"; then
     echo "" >> "$bashrc"
@@ -41,6 +42,12 @@ if ! grep -q "$aliases" "$bashrc"; then
     echo "$aliases" >> "$bashrc"
 fi
 
+if ! grep -q "$autocomplete" "$bashrc"; then
+    echo "" >> "$bashrc"
+    echo "# Autocomplete functions from Kimbsy/dotfiles repo." >> "$bashrc"
+    echo "$autocomplete" >> "$bashrc"
+fi
+
 # Copy over autocompletion stuff.
 sudo cp "$repo/custom_bash_completion.sh" /etc/bash_completion.d/custom_bash_completion
 sudo chmod 644 /etc/bash_completion.d/custom_bash_completion
@@ -48,5 +55,5 @@ sudo chmod 644 /etc/bash_completion.d/custom_bash_completion
 # Remind to reload bash config.
 echo "Config updated, please run the following command:"
 echo ""
-echo ". $1 && . /etc/bash_completion.d/custom_bash_completion"
+echo ". $1"
 echo ""
