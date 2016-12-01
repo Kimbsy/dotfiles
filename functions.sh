@@ -79,3 +79,8 @@ vim() {
   fi
 }
 
+# Delete a Git branch locally and remotely
+gbdel() {
+  git branch -D $1 &&
+  git push --delete origin $1
+}
