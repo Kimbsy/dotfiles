@@ -16,6 +16,8 @@ resource="alias resource='source $bash_config'"
 functions=". $repo/functions.sh"
 aliases=". $repo/aliases.sh"
 
+sed -i '/#force_color_prompt=yes/c\force_color_prompt=yes' "$bash_config"
+
 if ! grep -q "$resource" "$bash_config"; then
     echo "" >> "$bash_config"
     echo "# Reload source of bash" >> "$bash_config"
@@ -37,4 +39,4 @@ fi
 # Remind to reload bash config.
 RED='\033[0;31m'
 NC='\033[0m' # No Color
-printf "${RED}Config updated, please run 'source $1'${NC}\n"
+printf "${RED}Config updated, please run 'source $bash_config'${NC}\n"
