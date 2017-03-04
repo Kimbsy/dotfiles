@@ -22,23 +22,28 @@ sed -i "/#force_color_prompt=yes/c\force_color_prompt=yes" "$bash_config" # Forc
 sed -i "/alias ll='ls -alF'/c\alias ll='ls -halF'" "$bash_config"         # Add the h flag to ll.
 sed -i "/#shopt -s globstar/c\shopt -s globstar" "$bash_config"           # Turn on double star globbing.
 
+# Add functions and aliases to bash config.
 if ! grep -q "$resource" "$bash_config"; then
     echo "" >> "$bash_config"
     echo "# Reload source of bash" >> "$bash_config"
     echo "$resource" >> "$bash_config"
 fi
-
 if ! grep -q "$functions" "$bash_config"; then
     echo "" >> "$bash_config"
     echo "# Functions from Kimbsy/dotfiles repo." >> "$bash_config"
     echo "$functions" >> "$bash_config"
 fi
-
 if ! grep -q "$aliases" "$bash_config"; then
     echo "" >> "$bash_config"
     echo "# Aliases from Kimbsy/dotfiles repo." >> "$bash_config"
     echo "$aliases" >> "$bash_config"
 fi
+
+# Import default profile for Terminator.
+cp "$repo/config/terminator/config" "/home/kimbsy/.config/terminator/config"
+
+# Import key bindings for Sublime Text.
+cp "$repo/config/sublime/Default (Linux).sublime-keymap" "/home/kimbsy/.config/sublime-text-3/Packages/User/"
 
 # Reminder to reload bash config.
 RED='\033[0;31m'
