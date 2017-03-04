@@ -17,8 +17,9 @@ functions=". $repo/functions.sh"
 aliases=". $repo/aliases.sh"
 
 # Change some of the default settings.
-sed -i "/#force_color_prompt=yes/c\force_color_prompt=yes" "$bash_config"
-sed -i "/alias ll='ls -alF'/c\alias ll='ls -halF'" "$bash_config"
+sed -i "/#force_color_prompt=yes/c\force_color_prompt=yes" "$bash_config" # Force coloured prompt.
+sed -i "/alias ll='ls -alF'/c\alias ll='ls -halF'" "$bash_config"         # Add the h flag to ll.
+sed -i "/#shopt -s globstar/c\shopt -s globstar" "$bash_config"           # Turn on double star globbing.
 
 if ! grep -q "$resource" "$bash_config"; then
     echo "" >> "$bash_config"
