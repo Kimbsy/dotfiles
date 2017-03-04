@@ -6,33 +6,35 @@ if [ -z $1 ]; then
     echo "usage:"
     echo "       ./install.sh <path_to_bashrc>"
 fi
-BASH=$1
+bash_config=$1
 
 # Get path of repo
-REPO=$(pwd)
+repo=$(pwd)
 
 # Strings to put in bash file
-RESOURCE="alias resource='source $BASH'"
-FUNCTIONS=". $REPO/functions.sh"
-ALIASES=". $REPO/aliases.sh"
+resource="alias resource='source $bash_config'"
+functions=". $repo/functions.sh"
+aliases=". $repo/aliases.sh"
 
-if ! grep -q "$RESOURCE" $BASH; then
-    echo "" >> $BASH
-    echo "# Reload source of bash" >> $BASH
-    echo "$RESOURCE" >> $BASH
+if ! grep -q "$resource" "$bash_config"; then
+    echo "" >> "$bash_config"
+    echo "# Reload source of bash" >> "$bash_config"
+    echo "$resource" >> "$bash_config"
 fi
 
-if ! grep -q "$FUNCTIONS" $BASH; then
-    echo "" >> $BASH
-    echo "# Functions from Kimbsy/dotfiles repo." >> $BASH
-    echo "$FUNCTIONS" >> $BASH
+if ! grep -q "$functions" "$bash_config"; then
+    echo "" >> "$bash_config"
+    echo "# Functions from Kimbsy/dotfiles repo." >> "$bash_config"
+    echo "$functions" >> "$bash_config"
 fi
 
-if ! grep -q "$ALIASES" $BASH; then
-    echo "" >> $BASH
-    echo "# Aliases from Kimbsy/dotfiles repo." >> $BASH
-    echo "$ALIASES" >> $BASH
+if ! grep -q "$aliases" "$bash_config"; then
+    echo "" >> "$bash_config"
+    echo "# Aliases from Kimbsy/dotfiles repo." >> "$bash_config"
+    echo "$aliases" >> "$bash_config"
 fi
 
 # Remind to reload bash config.
-echo "Config updated, please run 'source $1'"
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+printf "${RED}Config updated, please run 'source $1'${NC}\n"
