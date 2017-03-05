@@ -40,9 +40,11 @@ if ! grep -q "$aliases" "$bash_config"; then
 fi
 
 # Import default profile for Terminator.
+mkdir -p "/home/kimbsy/.config/terminator/"
 cp "$repo/config/terminator/config" "/home/kimbsy/.config/terminator/config"
 
 # Import key bindings for Sublime Text.
+mkdir -p "/home/kimbsy/.config/sublime-text-3/Packages/User"
 cp "$repo/config/sublime/Default (Linux).sublime-keymap" "/home/kimbsy/.config/sublime-text-3/Packages/User/"
 
 # Reminder to reload bash config.
