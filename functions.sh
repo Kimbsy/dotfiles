@@ -30,15 +30,6 @@ define() {
   curl -s "http://www.collinsdictionary.com/dictionary/english/$*" | sed -n '/class="def"/p' | awk '{gsub(/.*<span class="def">|<\/span>.*/,"");print}' | sed "s/<[^>]\+>//g"
 }
 
-# Get weather data for Bristol
-weather() {
-    key=58b5b5a99ae513c8
-    echo BRISTOL:
-    echo ''
-    data=$(curl -s "http://api.wunderground.com/api/$key/forecast/q/UK/Bristol.json" | jq -r ['.forecast.txt_forecast.forecastday[] | [.title], [.fcttext], ["break"] | .[]'])
-    echo $data | sed -e 's/[,]/\n/g' -e 's/[]"]/''/g' -e 's/[[]/''/g' -e 's/break/\n/g'
-}
-
 # Epoch time conversion
 # can take either timestamp or date as param
 # Usage:
