@@ -18,6 +18,11 @@ bashrc=$1
 # get path of repo
 repo=$(pwd)
 
+# Change some of the default settings.
+sed -i "/#force_color_prompt=yes/c\force_color_prompt=yes" "$bashrc" # Force coloured prompt.
+sed -i "/alias ll='ls -alF'/c\alias ll='ls -halF'" "$bashrc"         # Add the h flag to ll.
+sed -i "/#shopt -s globstar/c\shopt -s globstar" "$bashrc"           # Turn on double star globbing.
+
 # strings to put in bash file
 resource="alias resource='source $bashrc'"
 functions=". $repo/functions.sh"
@@ -57,3 +62,16 @@ echo "Config updated, please run the following command:"
 echo ""
 echo ". $1"
 echo ""
+
+# Import default profile for Terminator.
+mkdir -p "/home/kimbsy/.config/terminator/"
+cp "$repo/config/terminator/config" "/home/kimbsy/.config/terminator/config"
+
+# Import key bindings for Sublime Text.
+mkdir -p "/home/kimbsy/.config/sublime-text-3/Packages/User"
+cp "$repo/config/sublime/Default (Linux).sublime-keymap" "/home/kimbsy/.config/sublime-text-3/Packages/User/"
+
+# Reminder to reload bash config.
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+printf "${RED}Config updated, please run 'source $bash_config'${NC}\n"
