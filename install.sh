@@ -1,43 +1,67 @@
 #!/bin/bash
 
-# Get location of bash config file from args.
-if [ -z $1 ]; then
-    echo "ERROR -- Config file destination not specified."
-    echo "usage:"
-    echo "       ./install.sh <path_to_bashrc>"
+# Check arg count
+ARG_COUNT=1
+if [ $# -ne $ARG_COUNT ]; then
+    echo "Usage: ./`basename $0` <path_to_bashrc>"
     exit
 fi
-bash_config=$1
 
-# Get path of repo.
+# Get location of bash config file from args
+if [ -z $1 ]; then
+    echo "ERROR -- Config file destination not specified."
+    echo "Usage: ./`basename $0` <path_to_bashrc>"
+fi
+
+bashrc=$1
+
+# get path of repo
 repo=$(pwd)
 
-# Strings to put in bash file.
-resource="alias resource='source $bash_config'"
+# Change some of the default settings.
+sed -i "/#force_color_prompt=yes/c\force_color_prompt=yes" "$bashrc" # Force coloured prompt.
+sed -i "/alias ll='ls -alF'/c\alias ll='ls -halF'" "$bashrc"         # Add the h flag to ll.
+sed -i "/#shopt -s globstar/c\shopt -s globstar" "$bashrc"           # Turn on double star globbing.
+
+# strings to put in bash file
+resource="alias resource='source $bashrc'"
 functions=". $repo/functions.sh"
 aliases=". $repo/aliases.sh"
+autocomplete=". /etc/bash_completion.d/custom_bash_completion"
 
-# Change some of the default settings.
-sed -i "/#force_color_prompt=yes/c\force_color_prompt=yes" "$bash_config" # Force coloured prompt.
-sed -i "/alias ll='ls -alF'/c\alias ll='ls -halF'" "$bash_config"         # Add the h flag to ll.
-sed -i "/#shopt -s globstar/c\shopt -s globstar" "$bash_config"           # Turn on double star globbing.
+if ! grep -q "$resource" "$bashrc"; then
+    echo "" >> "$bashrc"
+    echo "# Reload source of bash" >> "$bashrc"
+    echo "$resource" >> "$bashrc"
+fi
 
-# Add functions and aliases to bash config.
-if ! grep -q "$resource" "$bash_config"; then
-    echo "" >> "$bash_config"
-    echo "# Reload source of bash" >> "$bash_config"
-    echo "$resource" >> "$bash_config"
+if ! grep -q "$functions" "$bashrc"; then
+    echo "" >> "$bashrc"
+    echo "# Functions from Kimbsy/dotfiles repo." >> "$bashrc"
+    echo "$functions" >> "$bashrc"
 fi
-if ! grep -q "$functions" "$bash_config"; then
-    echo "" >> "$bash_config"
-    echo "# Functions from Kimbsy/dotfiles repo." >> "$bash_config"
-    echo "$functions" >> "$bash_config"
+
+if ! grep -q "$aliases" "$bashrc"; then
+    echo "" >> "$bashrc"
+    echo "# Aliases from Kimbsy/dotfiles repo." >> "$bashrc"
+    echo "$aliases" >> "$bashrc"
 fi
-if ! grep -q "$aliases" "$bash_config"; then
-    echo "" >> "$bash_config"
-    echo "# Aliases from Kimbsy/dotfiles repo." >> "$bash_config"
-    echo "$aliases" >> "$bash_config"
+
+if ! grep -q "$autocomplete" "$bashrc"; then
+    echo "" >> "$bashrc"
+    echo "# Autocomplete functions from Kimbsy/dotfiles repo." >> "$bashrc"
+    echo "$autocomplete" >> "$bashrc"
 fi
+
+# Copy over autocompletion stuff.
+sudo cp "$repo/custom_bash_completion.sh" /etc/bash_completion.d/custom_bash_completion
+sudo chmod 644 /etc/bash_completion.d/custom_bash_completion
+
+# Remind to reload bash config.
+echo "Config updated, please run the following command:"
+echo ""
+echo ". $1"
+echo ""
 
 # Import default profile for Terminator.
 mkdir -p "/home/kimbsy/.config/terminator/"
