@@ -1,3 +1,5 @@
+histtime='HISTTIMEFORMAT="%d/%m/%y %T "'
+
 alias updatepkg='sudo apt-get update && sudo apt-get -y dist-upgrade && sudo apt-get -y autoremove && sudo apt-get -y autoclean'
 
 # List all targets in a makefile in the working directory

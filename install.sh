@@ -13,7 +13,7 @@ custom="if [ -r ~/.bash_custom ]; then . ~/.bash_custom; fi"
 resource="alias resource='source ~/.bashrc'"
 autocomplete=". /etc/bash_completion.d/custom_bash_completion"
 
-if ! grep -q "$custom" ~/.bashrc; then
+if ! grep -q "~/.bash_custom" ~/.bashrc; then
     echo "" >> ~/.bashrc
     echo "# Source ~/.bash_custom" >> ~/.bashrc
     echo "$custom" >> ~/.bashrc
