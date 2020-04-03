@@ -1,7 +1,9 @@
+alias updatepkg='sudo apt-get update && sudo apt-get -y dist-upgrade && sudo apt-get -y autoremove && sudo apt-get -y autoclean'
 
-#########################################################################
-############################### FUNCTIONS ###############################
-#########################################################################
+# List all targets in a makefile in the working directory
+lsmake() {
+  make -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ {split($1,A,/ /);for(i in A)print A[i]}' | sort -u
+}
 
 # Easily extract all compressed file types
 extract () {
@@ -23,11 +25,6 @@ extract () {
    else
        echo "'$1' is not a valid file."
    fi
-}
-
-# Define a word using collinsdictionary.com
-define() {
-  curl -s "http://www.collinsdictionary.com/dictionary/english/$*" | sed -n '/class="def"/p' | awk '{gsub(/.*<span class="def">|<\/span>.*/,"");print}' | sed "s/<[^>]\+>//g"
 }
 
 # Epoch time conversion
